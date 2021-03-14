@@ -22,7 +22,7 @@ $(function () {
     $('.reg-form').submit(function (e) {
         e.preventDefault();
         let data = $(this).serialize()
-        axios.post('http://ajax.frontend.itheima.net/api/reguser', data).then(function (res) {
+        axios.post('/api/reguser', data).then(function (res) {
             if (res.data.status !== 0) {
                 return layer.msg(res.data.message)
             }
@@ -35,7 +35,7 @@ $(function () {
     $('.login-form').submit(function (e) {
         e.preventDefault()
         let data = $(this).serialize()
-        axios.post('http://ajax.frontend.itheima.net/api/login', data).then(function (res) {
+        axios.post('/api/login', data).then(function (res) {
             if (res.data.status !== 0) {
                 return layer.msg('登录失败')
             }
