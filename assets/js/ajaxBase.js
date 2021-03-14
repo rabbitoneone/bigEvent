@@ -17,9 +17,9 @@ axios.interceptors.request.use(function (config) {
 // 添加响应拦截器
 axios.interceptors.response.use(function (response) {
     // 对响应数据做点什么
-    console.log('response', response)
-    //删除token
-    if (response.data.status !== 0 && response.data.message !== "获取用户基本信息成功！") {
+    // console.log('response', response)
+    //删除token,刷新获取失败信息,来判断ajax的执行
+    if (response.data.status === 1 && response.data.message === "身份认证失败！") {
         localStorage.removeItem('token')
         // 跳转值登录页
         location.href = '/login.html'
