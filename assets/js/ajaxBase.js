@@ -1,5 +1,5 @@
 //优化axios发送请求的根路径
-axios.defaults.baseURL = 'http://ajax.frontend.itheima.net'
+axios.defaults.baseURL = 'http://api-breakingnews-web.itheima.net'
 //拦截优化请求的头信息以及登录身份失效操作
 //拦截优化请求的头信息
 // 添加请求拦截器 会在then和catch之前 拦截操作
