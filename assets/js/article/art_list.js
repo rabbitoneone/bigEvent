@@ -4,6 +4,7 @@ $(function () {
     //可以设置成对象里面去 方便传参以及更改
     let laypage = layui.laypage
     let form = layui.form
+
     let query = {
         pagenum: 1,	    //是	int	页码值
         pagesize: 2,    //是	int	每页显示多少条数据
@@ -26,7 +27,7 @@ $(function () {
                 <td>${formate(new Date(item.pub_date))}</td>
                 <td>${item.state}</td>
                 <td>
-                  <button type="button" class="layui-btn layui-btn-xs btn_edit">
+                  <button type="button" data-id='${item.Id}' class="layui-btn layui-btn-xs btn_edit">
                     编辑
                   </button>
                   <button type="button"  data-id='${item.Id}' class="layui-btn layui-btn-danger layui-btn-xs btn_delete">
@@ -121,4 +122,165 @@ $(function () {
 
         })
     })
+    //编辑操作
+    //点击效果: 会弹出发表文章的页面,数据初始化为点击表单的对应数据
+    $('body').on('click', '.btn_edit', function () {
+        // console.log($(this).attr('data-id'))
+        let id = $(this).attr('data-id')
+        axios.get('/my/article/' + id).then(res => {
+            // console.log(res)
+            if (res.data.status !== 0) {
+                return layer.msg('进入编辑失败')
+            }
+            //发送ajax请求获取信息
+            $('body').children().hide()
+            $(`<!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+            <title>Document</title>
+            <link rel="stylesheet" href="../assets/lib/layui/css/layui.css" />
+            <link rel="stylesheet" href="../assets/css/article/art_publish.css" />
+            <link rel="stylesheet" href="../assets/lib/cropper/cropper.css" />
+          </head>
+        
+          <body id="editBody">
+            <!-- 面板区域 -->
+            <div class="layui-card">
+              <div class="layui-card-header">修改文章</div>
+              <div class="layui-card-body">
+                <!-- 表单区域 -->
+                <form class="layui-form" id="editForm" lay-filter="editForm">
+                  <!-- 文章标题 -->
+                  <div class="layui-form-item">
+                    <label class="layui-form-label">文章标题</label>
+                    <div class="layui-input-block">
+                      <input
+                        id='editTitleInput'
+                        type="text"
+                        name="title"
+                        required
+                        lay-verify="required"
+                        placeholder="请输入标题"
+                        autocomplete="off"
+                        class="layui-input"
+                      />
+                    </div>
+                  </div>
+                  <!-- 文章类别 -->
+                  <div class="layui-form-item">
+                    <label class="layui-form-label">文章类别</label>
+                    <div class="layui-input-block" id="art_cate">
+                      <select name="cate_id" lay-verify="required">
+                        <option value="">请选择文章类别</option>
+                      </select>
+                    </div>
+                  </div>
+                  <!-- 文章内容 -->
+                  <div class="layui-form-item">
+                    <label class="layui-form-label">文章内容</label>
+                    <div class="layui-input-block" style="height: 400px">
+                      <textarea name="content"></textarea>
+                    </div>
+                  </div>
+                  <!-- 文章封面 -->
+                  <div class="layui-form-item">
+                    <label class="layui-form-label">文章封面</label>
+                    <div class="layui-input-block cropper-container">
+                      <!-- 文件选择框 -->
+                      <input
+                        class="layui-hide"
+                        type="file"
+                        id="fileCover"
+                        accept="image/jpeg,image/png,image/gif,image/bmp"
+                      />
+                      <div class="cropper-box">
+                        <img id="image" src="../../assets/images/sample2.jpg" />
+                      </div>
+                      <div class="right-box">
+                        <div class="img-preview"></div>
+                        <button
+                          type="button"
+                          class="layui-btn layui-btn-danger"
+                          id="btnChooseCoverImage"
+                        >
+                          选择封面
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- 按钮区域 -->
+                  <div class="layui-form-item">
+                    <div class="layui-input-block">
+                      <button class="layui-btn" lay-submit id="btnPublish">确认修改</button>
+                      <button class="layui-btn" lay-submit id="btnSave">存为草稿</button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+        
+            <script src="../assets/lib/layui/layui.all.js"></script>
+            <script src="../assets/lib/jquery.js"></script>
+            <script src="../assets/lib/axios.min.js"></script>
+            <script src="../assets/js/ajaxBase.js"></script>
+            <!-- 富文本编辑器 -->
+            <script src="../assets/lib/tinymce/tinymce.min.js"></script>
+            <script src="../assets/lib/tinymce/tinymce_setup.js"></script>
+            <!-- 图片裁剪 -->
+            <script src="../assets/lib/cropper/Cropper.js"></script>
+            <script src="../assets/lib/cropper/jquery-cropper.js"></script>
+            <!-- 页面的 JS 文件 -->
+            <script src="../assets/js/article/art_publish.js"></script>
+          </body>
+        </html>
+        `).appendTo('body')
+            //给表单赋值
+            form.val("editForm", res.data.data);
+            //获取状态
+            let state;
+            $('#artListBody').on('click', '#btnPublish', function () {
+                state = '已发布'
+            })
+            $('#artListBody').on('click', '#btnSave', function () {
+                state = '草稿'
+            })
+            //form表单的submit事件 收集数据
+            $('#artListBody').on('submit', '#editForm', function (e) {
+                let $image = $('#image')
+
+                e.preventDefault()
+                $image
+                    .cropper('getCroppedCanvas', { // 创建一个 Canvas 画布
+                        width: 400,
+                        height: 280
+                    })
+                    .toBlob((blob) => {       // 将 Canvas 画布上的内容，转化为文件对象
+                        // 得到blob文件对象后，进行后续的操作 ==> 通过 FormData来收集数据， ajax提交数据
+                        let fd = new FormData(this)
+                        // console.log(fd)
+                        fd.append('cover_img', blob)
+                        fd.append('state', state)
+                        fd.append('Id', id)
+                        // fd.forEach((value, item) => {
+                        //     console.log(value, item)
+                        // })
+                        axios.post('/my/article/edit', fd).then(res => {
+                            // console.log(res)
+                            if (res.data.status !== 0) {
+                                return layer.msg('发表失败')
+                            }
+                            layer.msg('发表成功')
+                            location.href = 'art_list.html'
+                        })
+                    })
+            })
+        })
+
+
+    })
+
+
 })
